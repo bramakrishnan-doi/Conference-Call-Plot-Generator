@@ -20,6 +20,7 @@ jobs:
             any::ggplot2
             any::tidyverse
             any::httr2
+            any::ggrepel
       - name: Install remotes
         run: |
           Rscript -e "install.packages('remotes', repos='https://mirror.las.iastate.edu/CRAN/')"
