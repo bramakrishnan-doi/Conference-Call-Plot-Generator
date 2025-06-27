@@ -289,7 +289,7 @@ targets$Type = 'Target'
 for (dam in unique(na.omit(comb$Dam))){
   p <- ggplot(data = filter(comb, Dam == dam, datatype == "Releases"), 
               mapping = aes(x=shortdate, y = value, color = Type))+
-    geom_line(size = 2, lineend = "round")+
+    geom_line(linewidth = 2, lineend = "round")+
     scale_x_date(limits=c(startplot, # could use start_firstmonth instead
                           as.Date(endmonth_2)), 
                  date_breaks = "week", 
@@ -300,7 +300,9 @@ for (dam in unique(na.omit(comb$Dam))){
                    paste(month(x), day(x), sep = "/")
                  },
                  expand = c(0.01,0.01)) +
-    scale_y_continuous(labels = scales::label_comma()) +
+    scale_y_continuous(labels = function(x) {
+      format(x, big.mark = ",")
+    }) +
     labs(x="", y = "Power Release (cfs)", title = paste0(dam, " Dam Releases"))+
     ylim(min(filter(comb, shortdate >= startplot, Dam == dam)$value) - 2000, 
          max(filter(comb, shortdate >= startplot, Dam == dam)$value) + 2000)+
@@ -321,8 +323,9 @@ for (dam in unique(na.omit(comb$Dam))){
 ### Make elevation plots for each reservoir ###
 
 for (reservoir in unique(na.omit(comb$Reservoir))){
-  p <- ggplot(data = filter(comb, Reservoir == reservoir, datatype == "Elevation"), mapping = aes(x=shortdate, y = value, color = Type))+
-    geom_line(size = 2, lineend = "round")+
+  p <- ggplot(data = filter(comb, Reservoir == reservoir, datatype == "Elevation"), 
+              mapping = aes(x=shortdate, y = value, color = Type))+
+    geom_line(linewidth = 2, lineend = "round")+
     scale_x_date(limits=c(startplot, # could use start_firstmonth instead
                           as.Date(endmonth_2)), 
                  date_breaks = "week", 
@@ -333,9 +336,15 @@ for (reservoir in unique(na.omit(comb$Reservoir))){
                    paste(month(x), day(x), sep = "/")
                  }, 
                  expand = c(0.01,0.01)) +
-    scale_y_continuous(labels = scales::label_comma()) +
-    ylim(min(c(filter(comb, shortdate >= startplot, Reservoir == reservoir)$value, filter(targets, Reservoir == reservoir)$value)) - 0.5, 
-         max(c(filter(comb, shortdate >= startplot, Reservoir == reservoir)$value, filter(targets, Reservoir == reservoir)$value)) + 0.5)+
+    scale_y_continuous(
+      labels = function(x) {
+        format(x, big.mark = ",")
+      }
+    )
+    ylim(min(c(filter(comb, shortdate >= startplot, Reservoir == reservoir)$value, 
+               filter(targets, Reservoir == reservoir)$value)) - 0.5, 
+         max(c(filter(comb, shortdate >= startplot, Reservoir == reservoir)$value, 
+               filter(targets, Reservoir == reservoir)$value)) + 0.5)+
     theme_bw(base_size = 12) +
     theme(plot.title = element_text(size=14, face = "bold", hjust = 0.5), 
           axis.title.y = element_text(face = "bold", size = 10),
@@ -383,8 +392,11 @@ maxelevs <- list("Mead" = "Maximum Elevation = 1,229 ft",
                  "Mohave" = "Maximum Elevation = 647 ft",
                  "Havasu" = "Maximum Elevation = 450 ft")
 for (reservoir in unique(na.omit(comb$Reservoir))){
-  p <- ggplot(data = filter(comb, Reservoir == reservoir, datatype == "Elevation"), mapping = aes(x=shortdate, y = value, fill = Type))+
-    geom_ribbon(aes(ymin = min(c(filter(comb, shortdate >= start_firstmonth, Reservoir == reservoir)$value, filter(targets, Reservoir == reservoir)$value))-0.5, ymax = value, xmin = as.Date(start_firstmonth), xmax = as.Date(endmonth_2)))+
+  p <- ggplot(data = filter(comb, Reservoir == reservoir, datatype == "Elevation"),
+              mapping = aes(x=shortdate, y = value, fill = Type))+
+    geom_ribbon(aes(ymin = min(c(filter(comb, shortdate >= start_firstmonth, Reservoir == reservoir)$value, 
+                                 filter(targets, Reservoir == reservoir)$value))-0.5, 
+                    ymax = value, xmin = as.Date(start_firstmonth), xmax = as.Date(endmonth_2)))+
     geom_line(size = 0.2)+
     scale_x_date(limits=c(startplot, # could use start_firstmonth instead
                           as.Date(endmonth_2)), date_breaks = "1 week", date_minor_breaks = "days", 
@@ -394,7 +406,9 @@ for (reservoir in unique(na.omit(comb$Reservoir))){
                                   max(c(filter(comb, shortdate >= start_firstmonth, Reservoir == reservoir)$value, 
                                         filter(targets, Reservoir == reservoir)$value)) + 0.5), 
                        expand = c(0,0),
-                       labels = scales::label_comma())+
+                       labels = function(x) {
+                         format(x, big.mark = ",")
+                       })+
     labs(x=ifelse(month(as.Date(endmonth_2))== 1, paste0(year(as.Date(endmonth_1)), '/', year(as.Date(endmonth_2))), year(as.Date(endmonth_2))), y = "Elevation (ft)", title = paste0("Lake ", reservoir, " End of Day Elevation"),
          subtitle = maxelevs[reservoir])+
     theme_bw(base_size = 6) +
