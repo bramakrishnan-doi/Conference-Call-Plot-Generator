@@ -409,7 +409,11 @@ for (reservoir in unique(na.omit(comb$Reservoir))){
                        labels = function(x) {
                          format(x, big.mark = ",")
                        })+
-    labs(x=ifelse(month(as.Date(endmonth_2))== 1, paste0(year(as.Date(endmonth_1)), '/', year(as.Date(endmonth_2))), year(as.Date(endmonth_2))), y = "Elevation (ft)", title = paste0("Lake ", reservoir, " End of Day Elevation"),
+    labs(x=ifelse(month(as.Date(endmonth_2))== 1, 
+                  paste0(year(as.Date(endmonth_1)), '/', year(as.Date(endmonth_2))), 
+                  year(as.Date(endmonth_2))), 
+         y = "Elevation (ft)", 
+         title = paste0("Lake ", reservoir, " End of Day Elevation"),
          subtitle = maxelevs[reservoir])+
     theme_bw(base_size = 6) +
     theme(plot.title = element_text(size=10, face = "bold", hjust = 0.5),
