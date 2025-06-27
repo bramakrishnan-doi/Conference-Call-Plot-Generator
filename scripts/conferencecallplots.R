@@ -340,7 +340,7 @@ for (reservoir in unique(na.omit(comb$Reservoir))){
       labels = function(x) {
         format(x, big.mark = ",")
       }
-    )
+    ) +
     ylim(min(c(filter(comb, shortdate >= startplot, Reservoir == reservoir)$value, 
                filter(targets, Reservoir == reservoir)$value)) - 0.5, 
          max(c(filter(comb, shortdate >= startplot, Reservoir == reservoir)$value, 
