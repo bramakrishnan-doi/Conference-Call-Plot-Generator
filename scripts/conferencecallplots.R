@@ -346,7 +346,7 @@ targets$Type = 'Target'
 for (dam in unique(na.omit(comb$Dam))){
   p <- ggplot(data = filter(comb, Dam == dam, datatype == "Releases"), 
               mapping = aes(x=shortdate, y = value, color = Type))+
-    geom_line(size = 1.5, lineend = "round")+
+    geom_line(size = 2, lineend = "round")+
     scale_x_date(limits=c(startplot, # could use start_firstmonth instead
                           as.Date(endmonth_2)), 
                  date_breaks = "week", 
@@ -378,7 +378,7 @@ for (dam in unique(na.omit(comb$Dam))){
 
 for (reservoir in unique(na.omit(comb$Reservoir))){
   p <- ggplot(data = filter(comb, Reservoir == reservoir, datatype == "Elevation"), mapping = aes(x=shortdate, y = value, color = Type))+
-    geom_line(size = 1.5, lineend = "round")+
+    geom_line(size = 2, lineend = "round")+
     scale_x_date(limits=c(startplot, # could use start_firstmonth instead
                           as.Date(endmonth_2)), 
                  date_breaks = "week", 
