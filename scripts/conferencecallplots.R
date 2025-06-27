@@ -1,30 +1,26 @@
 # This R code uses the rhdb package to pull data from the public API
-# Plots for conference calls are generated including: Mohave/Havasu elevation, Davis Releases, and 2008-YYYY average release for the current month for Davis/Parker
-
-#### MANUAL SET UP SECTION ###
-
-# Set these to dates that match the two elevation targets that we want to show in the release/pool elevation plots ie "YYYY-mm-dd"
-endmonth_1 = "2025-06-30"
-endmonth_2 = "2025-07-31"
-
-# Set to the Lake Mohave targets matching endmonth_1 and endmonth_2 (two decimals)
-mohave_elev_1 = 643.00
-mohave_elev_2 = 642.50
- 
-# Set to the Lake Havasu targets matching endmonth_1 and endmonth_2 (two decimals)
-havasu_elev_1 = 448.50
-havasu_elev_2 = 448.00
-
-
-# Set to 0 to show average release plots for the current month and next month, 1 to show average release plots for the next month
-# and month after that (the month following endmonth_2 - cannot be past the end of the daily model)
-monthflag = 0
+# Plots for conference calls are generated including: 
+# Mohave/Havasu elevation, Davis Releases, and 2008-YYYY average release
+# for the current month for Davis/Parker
 
 ### Everything below here is automatic ###
 # Load the required packages
 library(ggplot2)
 library(tidyverse)
 library(httr2)
+
+source("config.R")
+
+# Fetch and process data from the USBR HDB database
+#
+# This function sends a request to the USBR HDB API, retrieves the data in
+# JSON format, and processes it into a clean tibble.
+# Example 1: Get the last 24 hours of data for two sites.
+# df_hourly <- get_hdb_data(sdi = c(1930, 2100))
+#
+# Example 2: Get daily data for a different site over a longer period.
+# df_daily <- get_hdb_data(sdi = 1934, tstp = "DY", t1 = -30, t2 = 0)
+# get_hdb_data(c(1930,2101), t1="2025-06-01",t2="2025-06-25", tstp="DY")
 
 get_hdb_data <- function(sdi,
                          svr = "lchdb",
@@ -80,9 +76,15 @@ get_hdb_data <- function(sdi,
 
 
 # Build all the elevation targets into a single data frame
-targets <- data.frame (shortdate = c(as.Date(endmonth_1), as.Date(endmonth_2),as.Date(endmonth_1),as.Date(endmonth_2)),
-                       value = c(mohave_elev_1, mohave_elev_2, havasu_elev_1, havasu_elev_2),
-                       Reservoir = c("Mohave", "Mohave", "Havasu", "Havasu"))
+targets <- data.frame (
+  shortdate = c(as.Date(endmonth_1), 
+                as.Date(endmonth_2),
+                as.Date(endmonth_1),
+                as.Date(endmonth_2)
+                ),
+  value = c(mohave_elev_1, mohave_elev_2, havasu_elev_1, havasu_elev_2),
+  Reservoir = c("Mohave", "Mohave", "Havasu", "Havasu")
+  )
 
 
 # Set up dates to query data based on the current day
@@ -93,19 +95,14 @@ start_date = "2008-01-01"
 start_firstmonth = format(as.Date(endmonth_1), "%Y-%m-01")
 enddate = format(as.Date(endmonth_2) %m+% months(1), "%Y-%m-%d")
 
-# Only go back to the 15th of the first month if we're making presentation in the first 10 days of the second month,
+# Only go back to the 15th of the first month 
+# if we're making presentation in the first 10 days of the second month,
 # else go back to the beginning of the first month
-startplot <- as.Date(paste0(format(as.Date(endmonth_1), "%Y-%m"), "-", ifelse(as.numeric(currentdaysplit[3]) > 10, 01, 15)))
-
-
-# if (dir.exists(paste0('ConferenceCallPlots_', currentday))) {
-#   # Delete the folder if it exists
-#   unlink(paste0('ConferenceCallPlots_', currentday), recursive = TRUE)
-# } 
-# 
-# # Create a folder in Temp for these plots and change the wd
-# dir.create(paste0('ConferenceCallPlots_', currentday))
-# setwd(paste0('ConferenceCallPlots_', currentday))
+startplot <- as.Date(paste0(format(as.Date(endmonth_1), "%Y-%m"), 
+                            "-", 
+                            ifelse(as.numeric(currentdaysplit[3]) > 10, 01, 15)
+                            )
+                     )
 
 # Query daily releases for Hoover, Davis, and Parker 2008-yesterday
 hist_releases <- get_hdb_data(sdi = c(1874,2096,2097),
@@ -114,13 +111,9 @@ hist_releases <- get_hdb_data(sdi = c(1874,2096,2097),
                               t1 = start_date, 
                               t2 = yesterday )
 
-# hist_releases <- bind_rows(
-#   hdb_query(1874, "lc", "d", start_date, yesterday),
-#   hdb_query(2096, "lc", "d", start_date, yesterday),
-#   hdb_query(2097, "lc", "d", start_date, yesterday)
-# )
 
-# Query modeled releases from today through the end of the second month for Hoover, Davis, and Parker
+# Query modeled releases from today through the end of the second month 
+# for Hoover, Davis, and Parker
 # The 4 is to pull modeled data from MRID 4
 model_releases <- get_hdb_data(sdi = c(1863,2166,2146),
                               svr="lchdb", 
@@ -130,12 +123,6 @@ model_releases <- get_hdb_data(sdi = c(1863,2166,2146),
                               table = "M",
                               mrid = 4)
 
-# model_releases <- bind_rows(
-#   hdb_query(1863, "lc", "d", currentday, enddate, 4),
-#   hdb_query(2166, "lc", "d", currentday, enddate, 4),
-#   hdb_query(2146, "lc", "d", currentday, enddate, 4),
-# )
-
 # Query observed daily elevations from this year for Mead, Mohave, and Havasu
 hist_elevation <- get_hdb_data(sdi = c(1930,2100,2101),
                               svr="lchdb", 
@@ -143,13 +130,8 @@ hist_elevation <- get_hdb_data(sdi = c(1930,2100,2101),
                               t1 = start_firstmonth, 
                               t2 = yesterday )
 
-# hist_elevation <- bind_rows(
-#   hdb_query(1930, "lc", "d", start_firstmonth, yesterday),
-#   hdb_query(2100, "lc", "d", start_firstmonth, yesterday),
-#   hdb_query(2101, "lc", "d", start_firstmonth, yesterday),
-# )
-
-# Query modeled daily elevations for from today through the end of the second month for Hoover, Davis, and Parker
+# Query modeled daily elevations for from today through the end of 
+# the second month for Hoover, Davis, and Parker
 model_elevation <- get_hdb_data(sdi = c(1930,2100,2101),
                                svr="lchdb", 
                                tstp="DY", 
@@ -157,22 +139,6 @@ model_elevation <- get_hdb_data(sdi = c(1930,2100,2101),
                                t2 = enddate,
                                table = "M",
                                mrid = 4)
-
-# model_elevation <- bind_rows(
-#   hdb_query(1930, "lc", "d", currentday, enddate, 4),
-#   hdb_query(2100, "lc", "d", currentday, enddate, 4),
-#   hdb_query(2101, "lc", "d", currentday, enddate, 4),
-# )
-
-# This is a function that changes the date formatting of HDB dataframes
-# reformat_date <- function(hdbdataframe){
-# df <- mutate(hdbdataframe, shortdate = sapply(strsplit(time_step, " "), `[`, 1)) #split time_step on space
-# df$shortdate <- as.Date(df$shortdate, format = "%m/%d/%Y") # formate date
-# df$time_step <- NULL # Remove the unneeded part 
-# df$month <- month(df$shortdate) # Create month column
-# return(df)
-# }
-
 
 # Use the function to format dates in historical and current data
 hist_releases <- hist_releases %>% 
@@ -215,29 +181,6 @@ model_elevation <- model_elevation %>%
                             '2101' = 'Havasu'),
          Type = "Modeled") 
 
-# # # For the release data, recode the sdi as the dam name and add Type column
-# # hist_releases$Dam <- recode(hist_releases$sdi, 
-# #                             '1874' = 'Hoover', 
-# #                             '2096' = 'Davis',
-# #                             '2097' = 'Parker')
-# # hist_releases$Type <- 'Observed'
-# # model_releases$Dam <- recode(model_releases$sdi, 
-# #                              '1863' = 'Hoover', 
-# #                              '2166' = 'Davis',
-# #                              '2146' = 'Parker')
-# # model_releases$Type <- 'Modeled'
-# 
-# # For elevation data, recode the sdi as the reservoir name and add Type column
-# hist_elevation$Reservoir <- recode(hist_elevation$sdi,
-#                          '1930' = 'Mead', 
-#                          '2100' = 'Mohave',
-#                          '2101' = 'Havasu')
-# hist_elevation$Type <- 'Observed'
-# model_elevation$Reservoir <- recode(model_elevation$sdi,
-#                                     '1930' = 'Mead', 
-#                                     '2100' = 'Mohave',
-#                                     '2101' = 'Havasu')
-# model_elevation$Type <- 'Modeled'
 
 # Combine the observed and modeled data into a single data frame
 releases <- rbind(hist_releases, model_releases) 
@@ -357,6 +300,7 @@ for (dam in unique(na.omit(comb$Dam))){
                    paste(month(x), day(x), sep = "/")
                  },
                  expand = c(0.01,0.01)) +
+    scale_y_continuous(labels = scales::label_comma()) +
     labs(x="", y = "Power Release (cfs)", title = paste0(dam, " Dam Releases"))+
     ylim(min(filter(comb, shortdate >= startplot, Dam == dam)$value) - 2000, 
          max(filter(comb, shortdate >= startplot, Dam == dam)$value) + 2000)+
@@ -389,6 +333,7 @@ for (reservoir in unique(na.omit(comb$Reservoir))){
                    paste(month(x), day(x), sep = "/")
                  }, 
                  expand = c(0.01,0.01)) +
+    scale_y_continuous(labels = scales::label_comma()) +
     ylim(min(c(filter(comb, shortdate >= startplot, Reservoir == reservoir)$value, filter(targets, Reservoir == reservoir)$value)) - 0.5, 
          max(c(filter(comb, shortdate >= startplot, Reservoir == reservoir)$value, filter(targets, Reservoir == reservoir)$value)) + 0.5)+
     theme_bw(base_size = 12) +
@@ -444,9 +389,12 @@ for (reservoir in unique(na.omit(comb$Reservoir))){
     scale_x_date(limits=c(startplot, # could use start_firstmonth instead
                           as.Date(endmonth_2)), date_breaks = "1 week", date_minor_breaks = "days", 
                  date_labels="%m/%d", expand = c(0,0)) +
-    scale_y_continuous(limits = c(min(c(filter(comb, shortdate >= start_firstmonth, Reservoir == reservoir)$value, filter(targets, Reservoir == reservoir)$value)) - 0.5, 
-                                  max(c(filter(comb, shortdate >= start_firstmonth, Reservoir == reservoir)$value, filter(targets, Reservoir == reservoir)$value)) + 0.5), 
-                       expand = c(0,0))+
+    scale_y_continuous(limits = c(min(c(filter(comb, shortdate >= start_firstmonth, Reservoir == reservoir)$value, 
+                                        filter(targets, Reservoir == reservoir)$value)) - 0.5, 
+                                  max(c(filter(comb, shortdate >= start_firstmonth, Reservoir == reservoir)$value, 
+                                        filter(targets, Reservoir == reservoir)$value)) + 0.5), 
+                       expand = c(0,0),
+                       labels = scales::label_comma())+
     labs(x=ifelse(month(as.Date(endmonth_2))== 1, paste0(year(as.Date(endmonth_1)), '/', year(as.Date(endmonth_2))), year(as.Date(endmonth_2))), y = "Elevation (ft)", title = paste0("Lake ", reservoir, " End of Day Elevation"),
          subtitle = maxelevs[reservoir])+
     theme_bw(base_size = 6) +
