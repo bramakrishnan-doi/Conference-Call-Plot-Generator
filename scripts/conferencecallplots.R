@@ -9,7 +9,7 @@ library(ggplot2)
 library(tidyverse)
 library(httr2)
 
-source("config.R")
+source("scripts/config.R")
 
 # Fetch and process data from the USBR HDB database
 #
