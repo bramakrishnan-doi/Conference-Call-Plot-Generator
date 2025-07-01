@@ -188,80 +188,89 @@ elevation <- rbind(hist_elevation, model_elevation)
 
 ### Make the average yearly release figure x 2 ###
 
-# # This is a function to format the yearly average plots
-# format_yearlyavg <- function(ggname){
-#   return(ggname + 
-#            geom_line(color = "#003E51", size =2)+
-#            geom_point(color="#003E51", size = 2, shape = 21, stroke = 2, aes(fill = as.factor(symbol)))+
-#            scale_fill_manual(values = c("#003E51", 'white'))+
-#            scale_y_continuous(breaks=seq(6000,20000,2000), limits=c(6000,20000))+
-#            scale_x_continuous(breaks = seq(min(monthonly_avgrelease$year),max(monthonly_avgrelease$year),1), expand = c(.025, .025))+
-#            ylab("Power Release (cfs)")+
-#            xlab("Year")+
-#            theme_bw(base_size = 8)+
-#            theme(plot.title = element_text(hjust = 0.5))+
-#            theme(panel.grid.minor.x = element_blank(), legend.position = "none")+
-#            theme(plot.title = element_text(size=14, face = "bold"), 
-#                  axis.title.y = element_text(size = 8, face = "bold"),
-#                  axis.title.x = element_text(size = 8, face = "bold"),
-#                  axis.text.x = element_text(angle = 90)))
-# }
-# 
-# # Create the text file to write the powerpoint data to 
-# file.create('AveragesforPptSlides.txt')
-# avgs <- 'AveragesforPptSlides.txt'
-# 
-# for (n in c(endmonth_2, enddate)){
-#   
-#   # Filter release data to keep just the month we want to make the plots for
-#   monthonly_releases <- filter(releases, month == month(as.Date(n)))
-# 
-#   # Average the release by month and rename the year column for plotting
-#   monthonly_avgrelease <- monthonly_releases %>% 
-#                           group_by(Dam, year(shortdate)) %>% 
-#                           summarise(value = mean(value)) # average the data for the month this year to plot
-#   
-#   monthonly_avgrelease <- monthonly_avgrelease %>% rename_at('year(shortdate)', ~'year')
-#   
-#   # Make dam into factor for plotting
-#   monthonly_avgrelease$Dam = factor(monthonly_avgrelease$Dam, levels = c('Hoover', 'Davis', 'Parker'))
-#   
-#   # Create a symbol column
-#   monthonly_avgrelease$symbol <- ifelse(monthonly_avgrelease$year == as.numeric(year(as.Date(n))), 'open', 'closed')
-#   
-#   # Save the plot for the three dams combined
-#   ggsave(format_yearlyavg(ggplot(monthonly_avgrelease, aes(x=year, y=value)))+
-#            facet_grid(~Dam) + 
-#            ggtitle(paste0("Average Releases in ", month.name[month(as.Date(n))])),
-#          filename = paste0("Combined_AverageReleasesin", month.name[month(as.Date(n))],".png"),
-#          width = 10,
-#          height = 6)
-#   
-#   # Save the plots for each individual dam
-#   for (name in unique(monthonly_avgrelease$Dam)) {
-#     ggsave(format_yearlyavg(ggplot(filter(monthonly_avgrelease, Dam == name), aes(x=year, y=value)))+
-#              ggtitle(paste0("Average ", name, " Releases in ", month.name[month(as.Date(n))])),
-#            filename = paste0(name, "AverageReleasesin", month.name[month(as.Date(n))],".png"),
-#            width = 5.25,
-#            height = 3.1)
-#   }
-#   
-#   # Get averages ready to write to the text file
-#   historicmean = filter(monthonly_avgrelease, year != year(as.Date(n))) %>% 
-#                  group_by(Dam) %>% 
-#                  summarise(value = round(mean(value), -2)) 
-#   historicmean$year = paste0("2008-", as.character(year(as.Date(n))-1))
-#   
-#   thislastyear = filter(monthonly_avgrelease, year >= year(as.Date(n)) -1) %>% 
-#                  select(-"symbol")
-#   thislastyear$value = round(thislastyear$value, -2)
-#   thislastyear$year = as.character(thislastyear$year)
-#   allhist <- rbind(thislastyear, historicmean)
-#   
-#   # Write data to the text file
-#   cat(paste0("Average releases for ", month.name[month(as.Date(n))], ":"), file = avgs, append = TRUE, sep = "\n")
-#   write.table(allhist[order(allhist$Dam, allhist$year), ], file = avgs, append = TRUE, row.names = FALSE, col.names = FALSE)
-# }
+# # Create the text file to write the powerpoint data to
+file.create('AveragesforPptSlides.txt')
+avgs <- 'AveragesforPptSlides.txt'
+
+for (n in c(endmonth_2, enddate)){
+  
+  # Filter release data to keep just the month we want to make the plots for
+  monthonly_releases <- filter(releases, month == month(as.Date(n)))
+  
+  # Average the release by month and rename the year column for plotting
+  monthonly_avgrelease <- monthonly_releases %>%
+    group_by(Dam, year(shortdate)) %>%
+    summarise(value = mean(value)) # average the data for the month this year to plot
+  
+  monthonly_avgrelease <- monthonly_avgrelease %>% rename_at('year(shortdate)', ~'year')
+  
+  # Make dam into factor for plotting
+  monthonly_avgrelease$Dam = factor(monthonly_avgrelease$Dam, levels = c('Hoover', 'Davis', 'Parker'))
+  
+  # Create a symbol column
+  monthonly_avgrelease$symbol <- ifelse(monthonly_avgrelease$year == as.numeric(year(as.Date(n))), 'open', 'closed')
+  
+  # Save the plots for each individual dam
+  for (name in unique(monthonly_avgrelease$Dam)) {
+    
+    dam_data <- filter(monthonly_avgrelease, Dam == name)
+    
+    # Calculate the y-axis limits
+    min_val <- floor(min(dam_data$value) / 1000) * 1000 - 1000
+    max_val <- ceiling(max(dam_data$value) / 1000) * 1000 + 1000
+    
+    # Generate the plot with dynamic y-axis
+    ggplot(filter(monthonly_avgrelease, Dam == name), aes(x=year, y=value)) +
+      geom_line(color = "#003E51", size = 1.5) +
+      geom_point(color="#003E51", size = 2.5, shape = 21, stroke = 2, aes(fill = as.factor(symbol))) +
+      scale_fill_manual(values = c("#003E51", 'white')) +
+      
+      # --- Set limits and breaks for the y-axis ---
+      scale_y_continuous(
+        limits = c(min_val, max_val),
+        breaks = seq(min_val, max_val, 1000),
+        labels = label_comma(),
+        expand = c(0,0)
+      ) +
+      
+      scale_x_continuous(breaks = seq(min(monthonly_avgrelease$year),
+                                      max(monthonly_avgrelease$year),
+                                      1),
+                         expand = c(.025, .025)) +
+      ylab("Power Release (cfs)") +
+      xlab("Year") +
+      theme_bw(base_size = 8) +
+      theme(
+        plot.title = element_text(hjust = 0.5, size = 14, face = "bold"),
+        panel.grid.minor.x = element_blank(),
+        legend.position = "none",
+        axis.title.y = element_text(size = 8, face = "bold"),
+        axis.title.x = element_text(size = 8, face = "bold"),
+        axis.text.x = element_text(angle = 90, vjust = 0.5, hjust=1)
+      )
+    
+    ggsave(filename = paste0(name, "AverageReleasesin", month.name[month(as.Date(n))],".png"),
+           width = 6.25,
+           height = 3.1 
+    )
+  }
+  
+  # Get averages ready to write to the text file
+  historicmean = filter(monthonly_avgrelease, year != year(as.Date(n))) %>%
+    group_by(Dam) %>%
+    summarise(value = round(mean(value), -2))
+  historicmean$year = paste0("2008-", as.character(year(as.Date(n))-1))
+  
+  thislastyear = filter(monthonly_avgrelease, year >= year(as.Date(n)) -1) %>%
+    select(-"symbol")
+  thislastyear$value = round(thislastyear$value, -2)
+  thislastyear$year = as.character(thislastyear$year)
+  allhist <- rbind(thislastyear, historicmean)
+  
+  # Write data to the text file
+  cat(paste0("Average releases for ", month.name[month(as.Date(n))], ":"), file = avgs, append = TRUE, sep = "\n")
+  write.table(allhist[order(allhist$Dam, allhist$year), ], file = avgs, append = TRUE, row.names = FALSE, col.names = FALSE)
+}
 
 
 ### Get elevation/release data ready for plotting ###
