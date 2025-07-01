@@ -7,6 +7,7 @@
 # Load the required packages
 library(ggplot2)
 library(tidyverse)
+library(scales)
 library(httr2)
 
 source("scripts/config.R")

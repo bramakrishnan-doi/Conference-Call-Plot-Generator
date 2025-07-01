@@ -19,6 +19,7 @@ jobs:
           packages:
             any::ggplot2
             any::tidyverse
+            any::scales
             any::httr2
             any::ggrepel
       - name: Install remotes
