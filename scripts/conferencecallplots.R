@@ -9,6 +9,8 @@ library(ggplot2)
 library(tidyverse)
 library(scales)
 library(httr2)
+library(zoo)
+library(magick)
 
 source("scripts/config.R")
 
@@ -437,3 +439,237 @@ for (reservoir in unique(na.omit(comb$Reservoir))){
     ggsave(p, filename = paste0(reservoir, '_filledelevation_NPS.png'), width = 4, height = 2.1)
   
 }
+
+############## NPS - Mead EOM Elevation Projections Chart ##################
+month_heading = month.name[month(ym(run_date))]
+# add year to subheading
+month_heading = paste(month_heading, year(ym(run_date)))
+
+lab_names <- c(paste0(month_heading, " Probable 24-Month Study"),
+               "Historical")
+
+subtitleb = paste0('Projections from ',month_heading, 
+                   ' 24-Month Study Most Probable Inflow Scenario')
+
+sdis <- c("Mead.Pool Elevation" = 1930)
+slots <- names(sdis)
+mrid_to_trace <- c("24MS Most")
+names(mrid_to_trace) <- c(most_mrid)
+
+hist_nMons = 12 # keep 7 months before start date
+end_date = format(ym(run_date) + months(23), "%Y-%m")
+start_date = format(ym(run_date) - months(1), "%Y-%m")
+histStart_date = format(ym(run_date) - months(hist_nMons), "%Y-%m") 
+textStart_date = format(ym(run_date) - months(4), "%Y-%m")
+
+## Read 24-MS data from hdb - no vpn needed
+df_hdb <- get_hdb_data(sdi = sdis["Mead.Pool Elevation"], 
+                       tstp="MN", 
+                       svr = "lchdb", 
+                       t1 = run_date, 
+                       t2 = end_date,
+                       table = "M",
+                       mrid = most_mrid)
+
+df_hdb <- df_hdb %>%
+  mutate(slot = names(sdis)[match(sdi, sdis)],
+         run = run_date,
+         Trace = mrid_to_trace[as.character(mrid)]) %>%
+  rename(Date = time_step) %>%
+  mutate(Date = as.yearmon(Date)) %>%
+  select(-sdi, -mrid)
+
+## Read historical data from hdb
+df_hist <- get_hdb_data(sdi = sdis["Mead.Pool Elevation"], 
+                        tstp="MN", 
+                        svr = "lchdb", 
+                        t1 = histStart_date, 
+                        t2 = run_date)
+
+## Reorg histrical data
+df_hist <- df_hist %>%
+  mutate(slot = names(sdis)[match(sdi, sdis)],
+         run = run_date,
+         Trace = 'Historical') %>%
+  rename(Date = time_step) %>%
+  mutate(Date = as.yearmon(Date)) %>%
+  select(-sdi, -mrid) %>% na.omit()
+
+## Add historical data to 24MS df
+df_hdb = rbind(df_hdb, df_hist)
+
+## Connect historical data and initial conditions
+df_init = df_hdb %>% 
+  filter(Date == run_date) %>% 
+  select(-value, -Date) %>% distinct()
+df_hist2 = df_hist %>% 
+  filter(Date == max(Date)) %>%
+  select(slot, Date, value)
+df_initAdd = left_join(df_init, df_hist2, by = 'slot')
+df_24MS <- rbind(df_hdb, df_initAdd)
+
+
+
+names(lab_names) <- c("24MS Most", "Historical")
+
+nn <- lab_names[1:2]
+
+df_24MS_m = df_24MS %>% filter(slot == 'Mead.Pool Elevation') %>%
+  mutate(trace_labels = lab_names[Trace])
+
+## Min, Max, Most, ESP is order of these colors, size, linetype
+custom_colors <- c('#26AE44', 'grey20') #, 'grey43')
+custom_size <- c(1, 1)
+custom_lt <- c(1, 1)
+custom_alpha <- c(rep(1, 2))
+names(custom_colors) <- names(custom_size) <- names(custom_lt) <- 
+  names(custom_alpha) <- nn
+
+#-------------------- NPS-24MS-MOST -------------------------------------------
+m_breaks <- seq(1000, 1250, 25)
+m_breaks2 <- seq(1000, 1250, 5)
+yy <- c(1000, 1125) # NULL for default ylimit
+alpha_1 = 0.8
+
+df_24ms_most = filter(df_24MS_m, (Trace == "24MS Most" | Trace == "Historical"))
+
+last_date <- max(df_24ms_most$Date)
+
+# Create a new column that is -0.022 for the last date and 0 for all others
+df_24ms_most$nudge_amount <- ifelse(df_24ms_most$Date == last_date, -0.022, 0)
+
+## Function to get Powell and Mead Storage from Elevation
+res <- c("mead", "powell") # reservoirs
+
+getData <- function(res) 
+{
+  tmp <- read.csv(file.path("data", paste0(res, "ElevationVolume.csv")))
+  tmp
+}
+
+evTables <- lapply(res, getData)
+names(evTables) <- tolower(res)
+
+
+elevation_to_storage <- function(elevation, reservoir)
+{
+  # evTables are system data for this package
+  e2vFunc <- stats::approxfun(
+    evTables[[reservoir]][,1], 
+    evTables[[reservoir]][,2]
+  )
+  
+  e2vFunc(elevation)
+}
+
+
+gg <-
+  ggplot(df_24ms_most, aes(x = Date)) +
+  
+  geom_ribbon(aes(x= Date, ymax=1076.5, ymin=1076), fill="#cccccc", alpha=alpha_1)+
+  geom_ribbon(aes(x= Date, ymax=1076, ymin=1073), fill="#f1e2cc", alpha=alpha_1)+
+  geom_ribbon(aes(x= Date, ymax=1073, ymin=1070), fill="#fff2ae", alpha=alpha_1)+
+  geom_ribbon(aes(x= Date, ymax=1070, ymin=1060), fill="#e6f5c9", alpha=alpha_1)+
+  geom_ribbon(aes(x= Date, ymax=1060, ymin=1050), fill="#cbd5e8", alpha=alpha_1)+
+  geom_ribbon(aes(x= Date, ymax=1050, ymin=1045), fill="#fdcdac", alpha=alpha_1)+
+  geom_ribbon(aes(x= Date, ymax=1045, ymin=1035), fill="#b3e2cd", alpha=alpha_1)+
+  geom_ribbon(aes(x= Date, ymax=1035, ymin=1000), fill="#cccccc", alpha=alpha_1)+
+  geom_ribbon(aes(x= Date, ymax=1000, ymin=950), fill="#ffb6c1", alpha=alpha_1)+
+  geom_vline(
+    xintercept = as.yearmon(c("Dec 2025", "Dec 2026")),
+    size = 1, color = "#ffdc70",  #"#ffdc70" or "grey45"
+    alpha = 0.8
+  ) +
+  annotate("text", x = as.yearmon(ym(histStart_date) + months(1)),
+           y=c(1078.2,1074.6, 1071.6,1066,1057,1054,1049.1,995,1046.6,1040,1020.6,1017.7), 
+           label=c("Hemenway Harbor Extension - 1,076.5'",
+                   "Temple Bar Extension - 1,076'",
+                   "Callville Bay Extension - 1,073'",
+                   "Echo Bay and South Cove Extension - 1,070'",
+                   "Hemenway Harbor, Echo Bay, Temple Bar, and South Cove",
+                   "Extension and Callville Bay Relocation Trigger - 1,060'",
+                   "Temple Bar and Echo Bay Relocation Trigger and",
+                   "Hemenway Harbor Relocation Trigger - 1,000'",
+                   "Hemenway Harbor Extension - 1,050'",
+                   "South Cove Closure - 1,045'",
+                   "Hemenway Harbor, Echo Bay, Calville Bay,",
+                   "and Temple Bar Extension - 1,035'"),
+           angle=00, size=2.5, hjust = 0)+
+  geom_line(data = df_24ms_most, 
+            aes(x = Date, y = value, color = trace_labels, 
+                alpha = trace_labels, group = Trace,
+                linetype = trace_labels, size = trace_labels)) +
+  geom_point(data = df_24ms_most, 
+             aes(x = Date, y = value, color = trace_labels, 
+                 alpha = trace_labels, group = Trace),
+             size = 2.5) +
+  
+  scale_color_manual(values = custom_colors, breaks = unique(df_24ms_most$trace_labels)) +
+  scale_linetype_manual(values = custom_lt, breaks = unique(df_24ms_most$trace_labels)) +
+  scale_size_manual(values = custom_size, breaks = unique(df_24ms_most$trace_labels)) +
+  scale_alpha_manual(values = custom_alpha, breaks = unique(df_24ms_most$trace_labels)) +
+  scale_x_yearmon(expand = c(0,0), breaks = unique(df_24MS$Date),
+                  minor_breaks = unique(df_24MS$Date),
+                  limits = c(min(df_24MS$Date), max(df_24MS$Date))) +
+  scale_y_continuous(
+    labels = scales::comma, breaks = m_breaks, minor_breaks = m_breaks2,
+    limits = yy, expand = c(0,0),
+    sec.axis = sec_axis(
+      ~elevation_to_storage(., "mead"),
+      breaks = elevation_to_storage(m_breaks, "mead"),
+      labels = scales::comma_format(scale = 1/1000000, accuracy = 0.01),
+      name = "Storage (maf)"
+    )
+  ) +
+  labs(y = "Pool Elevation (ft)", x = NULL, color = NULL, linetype = NULL,
+       size = NULL,
+       fill = NULL,
+       title = bquote('Lake Mead End-of-Month'~Elevations),
+       subtitle = subtitleb) +
+  #caption = bquote(' '^1~'Projected Lake Mead end-of-month elevations from the latest 24-Month Study inflow scenario.                  ') add this if we need footnote
+  
+  geom_vline(
+    xintercept = as.yearmon(start_date), #as.yearmon(c("Dec 2023", "Dec 2024")),
+    size = 1, color = "grey20",  #"#ffdc70" or "grey45"
+    alpha = 0.8
+  ) +
+  
+  annotate("text", x=as.yearmon(textStart_date), 
+           y=1100, hjust = 0, label="Historical", 
+           size=4.0, fontface = "bold") +
+  annotate("text", x=as.yearmon(run_date), 
+           y=1100, hjust = 0, label="Future", 
+           size=4.0, fontface = "bold") +
+  geom_text(aes(y = value, label=ifelse(Date>start_date,
+                                        format(round(value, digits=2), nsmall = 2) , "")),
+            angle = 90,
+            nudge_y = 10,
+            nudge_x = df_24ms_most$nudge_amount, 
+            size=4.0)+
+  
+  theme_bw(base_size = 14) +
+  guides(alpha = 'none',
+         color = guide_legend(nrow = 2, order = 1),
+         linetype = guide_legend(nrow = 2, order = 1),
+         size = guide_legend(nrow = 2, order = 1),
+         fill = guide_legend(order = 2)
+  ) +
+  theme(
+    axis.text.x = element_text(angle = 90, vjust = 0.5), 
+    # panel.grid.major.y = element_blank() ,
+    legend.position = "bottom",
+    legend.key.width = unit(1.2, "cm"),
+    plot.margin = unit(c(0.1,0.1,1,0.1), "cm"),
+    plot.title = element_text(face="bold", hjust = 0.5, size = 14),
+    plot.subtitle = element_text(hjust = 0.5, size = 13),
+    plot.caption = element_text(hjust = 0, size = 10, face = "italic")
+  )
+
+
+ggsave("NPS-24MS-MOST.png", 
+       width = 11, height = 8)
+
+crmms_m <- image_read("NPS-24MS-MOST.png")
+logo_raw <- image_read("https://www.usbr.gov/lc/region/g4000/BofR-vert.png")
+test_plot <- image_composite(crmms_m,image_resize(logo_raw,"325"),offset = "+2860+2060")
+image_write(test_plot, paste0(run_date,"-NPS-24MS-MOST.png"))
