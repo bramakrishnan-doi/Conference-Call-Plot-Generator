@@ -670,6 +670,6 @@ ggsave("NPS-24MS-MOST.png",
        width = 11, height = 8)
 
 crmms_m <- image_read("NPS-24MS-MOST.png")
-logo_raw <- image_read("https://www.usbr.gov/lc/region/g4000/BofR-vert.png")
+logo_raw <- image_read("data/BofR-vert.png")
 test_plot <- image_composite(crmms_m,image_resize(logo_raw,"325"),offset = "+2860+2060")
 image_write(test_plot, paste0(run_date,"-NPS-24MS-MOST.png"))
