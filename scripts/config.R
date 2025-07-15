@@ -1,6 +1,6 @@
 #### MANUAL SET UP SECTION ###
 
-# Set these to dates that match the two elevation targets that we want to show 
+# Set these to dates that match the two elevation targets that we want to show
 # in the release/pool elevation plots. Use the format "YYYY-mm-dd"
 endmonth_1 = "2025-06-30"
 endmonth_2 = "2025-07-31"
@@ -16,10 +16,15 @@ havasu_elev_2 = 448.00
 
 # Set to 0 to show average release plots for the current month and next month,
 # 1 to show average release plots for the next month
-# and month after that (the month following endmonth_2 
+# and month after that (the month following endmonth_2
 # - cannot be past the end of the daily model)
 monthflag = 0
 
 ## For NPS Mead EOM Elevation Projections Chart ##
 run_date = c('2025-06')
-most_mrid <- 3285 
+most_mrid <- 3285
+
+# Set which plot you want to generate
+
+plot_NPS_charts <- TRUE
+plot_Laughlin_charts <- TRUE
