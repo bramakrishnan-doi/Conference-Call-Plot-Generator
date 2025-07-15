@@ -549,7 +549,7 @@ if (plot_NPS_charts) {
           )$value,
           filter(targets, Reservoir == reservoir)$value
         )) -
-          0.5,
+          2,
         ymax = value,
         xmin = as.Date(start_firstmonth),
         xmax = as.Date(endmonth_2)
