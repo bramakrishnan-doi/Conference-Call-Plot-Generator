@@ -2,7 +2,7 @@
 
 # Set these to dates that match the two elevation targets that we want to show
 # in the release/pool elevation plots. Use the format "YYYY-mm-dd"
-endmonth_1 = "2025-06-30"
+endmonth_1 = "2025-07-31"
 endmonth_2 = "2025-08-31"
 
 # Set to the Lake Mohave targets matching endmonth_1 and endmonth_2 (two decimals)
