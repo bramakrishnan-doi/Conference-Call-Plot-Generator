@@ -536,20 +536,39 @@ if (plot_NPS_charts) {
     "Havasu" = "Maximum Elevation = 450 ft"
   )
   for (reservoir in unique(na.omit(comb$Reservoir))) {
+    # Define y-axis limits before plotting
+    y_min <- min(
+      c(
+        filter(
+          comb,
+          shortdate >= start_firstmonth,
+          Reservoir == reservoir
+        )$value,
+        filter(targets, Reservoir == reservoir)$value
+      )
+    ) -
+      2
+
+    y_max <- max(
+      c(
+        filter(
+          comb,
+          shortdate >= start_firstmonth,
+          Reservoir == reservoir
+        )$value,
+        filter(targets, Reservoir == reservoir)$value
+      )
+    ) +
+      2
+
+    y_max = ifelse(reservoir == "Havasu", 450, y_max)
+
     p <- ggplot(
       data = filter(comb, Reservoir == reservoir, datatype == "Elevation"),
       mapping = aes(x = shortdate, y = value, fill = Type)
     ) +
       geom_ribbon(aes(
-        ymin = min(c(
-          filter(
-            comb,
-            shortdate >= start_firstmonth,
-            Reservoir == reservoir
-          )$value,
-          filter(targets, Reservoir == reservoir)$value
-        )) -
-          2,
+        ymin = y_min,
         ymax = value,
         xmin = as.Date(start_firstmonth),
         xmax = as.Date(endmonth_2)
@@ -557,7 +576,7 @@ if (plot_NPS_charts) {
       geom_line(size = 0.2) +
       scale_x_date(
         limits = c(
-          startplot, # could use start_firstmonth instead
+          startplot,
           as.Date(endmonth_2)
         ),
         date_breaks = "1 week",
@@ -566,26 +585,7 @@ if (plot_NPS_charts) {
         expand = c(0, 0)
       ) +
       scale_y_continuous(
-        limits = c(
-          min(c(
-            filter(
-              comb,
-              shortdate >= start_firstmonth,
-              Reservoir == reservoir
-            )$value,
-            filter(targets, Reservoir == reservoir)$value
-          )) -
-            2,
-          max(c(
-            filter(
-              comb,
-              shortdate >= start_firstmonth,
-              Reservoir == reservoir
-            )$value,
-            filter(targets, Reservoir == reservoir)$value
-          )) +
-            2
-        ),
+        limits = c(y_min, y_max),
         expand = c(0, 0),
         labels = function(x) {
           format(x, big.mark = ",")
