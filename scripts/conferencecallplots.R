@@ -575,7 +575,7 @@ if (plot_NPS_charts) {
             )$value,
             filter(targets, Reservoir == reservoir)$value
           )) -
-            0.5,
+            2,
           max(c(
             filter(
               comb,
@@ -584,7 +584,7 @@ if (plot_NPS_charts) {
             )$value,
             filter(targets, Reservoir == reservoir)$value
           )) +
-            0.5
+            2
         ),
         expand = c(0, 0),
         labels = function(x) {
