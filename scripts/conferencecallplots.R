@@ -1,4 +1,4 @@
-# This R code uses the rhdb package to pull data from the public API
+# This R code uses a custom function (get_hdb_data) to pull data from the public API
 # Plots for conference calls are generated including:
 # Mohave/Havasu elevation, Davis Releases, and 2008-YYYY average release
 # for the current month for Davis/Parker
