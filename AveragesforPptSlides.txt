@@ -1,0 +1,20 @@
+Average releases for July:
+"Hoover" "2008-2024" 14000
+"Hoover" "2024" 12300
+"Hoover" "2025" 11500
+"Davis" "2008-2024" 13600
+"Davis" "2024" 12300
+"Davis" "2025" 11400
+"Parker" "2008-2024" 10900
+"Parker" "2024" 10200
+"Parker" "2025" 9400
+Average releases for August:
+"Hoover" "2008-2024" 12200
+"Hoover" "2024" 10000
+"Hoover" "2025" 11000
+"Davis" "2008-2024" 11900
+"Davis" "2024" 9700
+"Davis" "2025" 10800
+"Parker" "2008-2024" 9400
+"Parker" "2024" 7600
+"Parker" "2025" 8800
