@@ -18,7 +18,7 @@ havasu_elev_2 = 447.50
 # 1 to show average release plots for the next month
 # and month after that (the month following endmonth_2
 # - cannot be past the end of the daily model)
-monthflag = 0
+monthflag = 1
 
 ## For NPS Mead EOM Elevation Projections Chart ##
 run_date = c('2025-07')
