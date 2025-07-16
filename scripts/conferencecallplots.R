@@ -209,7 +209,10 @@ if (plot_Laughlin_charts) {
   file.create('AveragesforPptSlides.txt')
   avgs <- 'AveragesforPptSlides.txt'
 
-  for (n in c(endmonth_2, enddate)) {
+  for (n in c(
+    ifelse(monthflag == 0, endmonth_1, endmonth_2),
+    ifelse(monthflag == 0, endmonth_2, enddate)
+  )) {
     # Filter release data to keep just the month we want to make the plots for
     monthonly_releases <- filter(releases, month == month(as.Date(n)))
 
