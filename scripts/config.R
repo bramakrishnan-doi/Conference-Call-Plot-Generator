@@ -26,5 +26,5 @@ most_mrid <- 3287
 
 # Set which plot you want to generate
 
-plot_NPS_charts <- FALSE
+plot_NPS_charts <- TRUE
 plot_Laughlin_charts <- TRUE
