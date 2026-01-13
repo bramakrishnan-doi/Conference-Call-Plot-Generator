@@ -449,12 +449,12 @@ if (plot_Laughlin_charts) {
           filter(comb, shortdate >= startplot, Reservoir == reservoir)$value,
           filter(targets, Reservoir == reservoir)$value
         )) -
-          1.5,
+          0.5,
         max(c(
           filter(comb, shortdate >= startplot, Reservoir == reservoir)$value,
           filter(targets, Reservoir == reservoir)$value
         )) +
-          1.5
+          0.5
       ) +
       theme_bw(base_size = 12) +
       theme(
@@ -510,8 +510,8 @@ if (plot_Laughlin_charts) {
         scale_color_manual(
           values = c('#4472C4', '#ED7D31', '#FF0000'),
           labels = c(
-            paste0('Historical\n', reservoir, ' Elevation'),
             paste0('Projected\n', reservoir, ' Elevation'),
+            paste0('Historical\n', reservoir, ' Elevation'),
             paste0(reservoir, ' Target\nElevation')
           ),
           guide = guide_legend(
