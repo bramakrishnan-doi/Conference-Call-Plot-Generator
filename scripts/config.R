@@ -2,17 +2,18 @@
 
 # Set these to dates that match the two elevation targets that we want to show
 # in the release/pool elevation plots. Use the format "YYYY-mm-dd"
-# If the date is before the 14th of the month, use the previous month and current month.
-endmonth_1 = "2026-06-30"
-endmonth_2 = "2026-07-31"
+# If the date is before the 14th of the month, use the previous month and current month. 
+endmonth_1 = "2026-06-31"
+endmonth_2 = "2026-07-30"
 
 # Set to the Lake Mohave targets matching endmonth_1 and endmonth_2 (two decimals)
 mohave_elev_1 = 643.00
-mohave_elev_2 = 642.50
+mohave_elev_2 = 643.00
 
 # Set to the Lake Havasu targets matching endmonth_1 and endmonth_2 (two decimals)
-havasu_elev_1 = 448.00
-havasu_elev_2 = 447.50
+havasu_elev_1 = 448.50
+havasu_elev_2 = 448.50
+
 
 # Set to 0 to show average release plots for the current month and next month,
 # 1 to show average release plots for the next month
@@ -21,9 +22,10 @@ havasu_elev_2 = 447.50
 monthflag = 0
 
 ## For NPS Mead EOM Elevation Projections Chart ##
-run_date = "2026-06"
-most_mrid <- 3320
+run_date = c('2026-06')
+most_mrid <- 3317
 
-# Set which plots you want to generate
-plot_NPS_charts <- FALSE
-plot_Laughlin_charts <- TRUE
+# Set which plot you want to generate
+
+plot_NPS_charts <- TRUE
+plot_Laughlin_charts <- FALSE
