@@ -73,15 +73,28 @@ get_hdb_data <- function(
   jsonlite::fromJSON(body, simplifyVector = FALSE) |>
     pluck("Series") |>
     map(\(x) {
+      data_points <- x |> pluck("Data")
+
+      # Guard: skip series with no data so empty results don't error or
+      # produce mismatched-length columns.
+      if (length(data_points) == 0) {
+        return(tibble(
+          sdi       = integer(),
+          time_step = as.POSIXct(character(), tz = "MST"),
+          mrid      = character(),
+          value     = numeric(),
+          units     = character()
+        ))
+      }
+
       tibble(
         sdi       = x |> pluck("SDI"),
-        time_step = x |>
-          pluck("Data") |>
+        time_step = data_points |>
           map("t") |>
           unlist() |>
           parse_date_time2("%m/%d/%Y %I:%M:%S %p", tz = "MST"),
         mrid  = x |> pluck("MRID", .default = NA_character_) |> as.character(),
-        value = x |> pluck("Data") |> map("v") |> unlist() |> as.numeric(),
+        value = data_points |> map("v") |> unlist() |> as.numeric(),
         units = x |> pluck("DataTypeUnit")
       )
     }) |>
