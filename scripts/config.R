@@ -3,8 +3,8 @@
 # Set these to dates that match the two elevation targets that we want to show
 # in the release/pool elevation plots. Use the format "YYYY-mm-dd"
 # If the date is before the 14th of the month, use the previous month and current month. 
-endmonth_1 = "2026-06-31"
-endmonth_2 = "2026-07-30"
+endmonth_1 = "2026-06-30"
+endmonth_2 = "2026-07-31"
 
 # Set to the Lake Mohave targets matching endmonth_1 and endmonth_2 (two decimals)
 mohave_elev_1 = 643.00
@@ -23,7 +23,7 @@ monthflag = 0
 
 ## For NPS Mead EOM Elevation Projections Chart ##
 run_date = c('2026-06')
-most_mrid <- 3317
+most_mrid <- 3320
 
 # Set which plot you want to generate
 

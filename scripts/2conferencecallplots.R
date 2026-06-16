@@ -808,7 +808,7 @@ if (plot_NPS_charts) {
       alpha = alpha_1
     ) +
     geom_vline(
-      xintercept = as.yearmon(c("Dec 2025", "Dec 2026")),
+      xintercept = as.yearmon(c("Dec 2025", "Dec 2026", "Dec 2027")),
       size = 1,
       color = "#ffdc70", #"#ffdc70" or "grey45"
       alpha = 0.8
