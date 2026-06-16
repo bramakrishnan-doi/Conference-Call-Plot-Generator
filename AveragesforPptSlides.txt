@@ -1,20 +1,17 @@
-Average releases for January:
-"Hoover" "2008-2025" 9300
-"Hoover" "2025" 7700
-"Hoover" "2026" 6500
-"Davis" "2008-2025" 7900
-"Davis" "2025" 6500
-"Davis" "2026" 5500
-"Parker" "2008-2025" 5000
-"Parker" "2025" 4600
-"Parker" "2026" 4100
-Average releases for February:
-"Hoover" "2008-2025" 10600
-"Hoover" "2025" 9200
-"Hoover" "2026" 8800
-"Davis" "2008-2025" 10100
-"Davis" "2025" 8800
-"Davis" "2026" 8200
-"Parker" "2008-2025" 7400
-"Parker" "2025" 6600
-"Parker" "2026" 6500
+Average releases for June:
+"Hoover" "2008-2025" 15400
+"Hoover" "2025" 13400
+"Hoover" "2026" 14800
+"Davis" "2008-2025" 14800
+"Davis" "2025" 13000
+"Davis" "2026" 14500
+"Parker" "2008-2025" 11300
+"Parker" "2025" 10100
+"Parker" "2026" 10200
+Average releases for July:
+"Hoover" "2008-2025" 13900
+"Hoover" "2025" 11700
+"Davis" "2008-2025" 13400
+"Davis" "2025" 11100
+"Parker" "2008-2025" 10800
+"Parker" "2025" 9200
